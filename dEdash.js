@@ -38,16 +38,16 @@ const regex = new RegExp("^(?=.*[\\s]*r([0-9]+))(?=.*[\\s]*c([0-9]+))(?=.*[\\s]*
 
 const colors = ["#ffcc00", "#fda45c", "#f07d76", "#b8dbe5", "#aaa9d6", "#ab88b8", "#ab68ab"];
 
-var MAX_ROW = 5; // Number of rows available in the dashboard grid
-var MAX_COL = 7; // Number of columns available in the dashboard grid
-var DRAG_CHART_ENABLED = true;
+let MAX_ROW = 5; // Number of rows available in the dashboard grid
+let MAX_COL = 7; // Number of columns available in the dashboard grid
+let DRAG_CHART_ENABLED = true;
 
-var isIE = false;
+let isIE = false;
 if ((/*@cc_on ! @*/ false) || navigator.userAgent.match(/Trident/g)) {
 	isIE = true;
 }
 
-var isEdge = (window.navigator.userAgent.indexOf("Edge") > -1);
+let isEdge = (window.navigator.userAgent.indexOf("Edge") > -1);
 
 d3.selection.prototype.first = function() {
 	return d3.select(this[0][0]);
@@ -56,10 +56,10 @@ d3.selection.prototype.last = function() {
 	return d3.select(this[0][this.size() - 1]);
 };
 
-var avlbPosition = [];
+let avlbPosition = [];
 function hasEnoughRoom(row, col, wdth, hght) {
-	var endc = col + wdth - 1;
-	var endr = row + hght - 1;
+	let endc = col + wdth - 1;
+	let endr = row + hght - 1;
 
 	if (avlbPosition[row-1][col-1] > 0) {
 		return 4;
@@ -68,9 +68,9 @@ function hasEnoughRoom(row, col, wdth, hght) {
 	} else if (endr > MAX_ROW) {
 		return 2;
 	} else {
-		var okay = true;
-		for (var i = row-1; i < endr; i ++) {
-			for (var j = col-1; j < endc; j ++) {
+		let okay = true;
+		for (let i = row-1; i < endr; i ++) {
+			for (let j = col-1; j < endc; j ++) {
 				if (avlbPosition[i][j] > 0) {
 					okay = false;
 					i = endc;
@@ -86,15 +86,15 @@ function hasEnoughRoom(row, col, wdth, hght) {
 	}
 }
 function setPositions(row, col, wdth, hght, value, updateUi) {
-	var ulist = null;
+	let ulist = null;
 	if (updateUi) {
 		ulist = d3.select(".charts");
 	}
 
-	for (var c = col; c < (col + wdth); c ++) {
-		for (var r = row; r < (row + hght); r ++) {
+	for (let c = col; c < (col + wdth); c ++) {
+		for (let r = row; r < (row + hght); r ++) {
 			if (updateUi) {
-				var elem = ulist.selectAll(".phr.r" + r + ".c" + c + ".w1.h1");
+				let elem = ulist.selectAll(".phr.r" + r + ".c" + c + ".w1.h1");
 				elem.style("display", (value > 0) ? "none" : null);
 			}
 			avlbPosition[r-1][c-1] = (value > 0) ? 1 : ((value < 0) ? -1 : 0);
@@ -102,14 +102,14 @@ function setPositions(row, col, wdth, hght, value, updateUi) {
 	}
 }
 
-var avlbCharts = {};
+let avlbCharts = {};
 function addAvailableCharts(obj) {
 	avlbCharts[obj.id] = obj;
 }
 
-var cfgdCharts = [];
+let cfgdCharts = [];
 function getCfgdCharts(elmId) {
-	for (var i = 0; i < cfgdCharts.length; i ++) {
+	for (let i = 0; i < cfgdCharts.length; i ++) {
 		if (elmId == cfgdCharts[i].domId) {
 			return i;
 		}
@@ -117,9 +117,9 @@ function getCfgdCharts(elmId) {
 	return -1;
 }
 
-var channels = [];
+let channels = [];
 function getChannels(id) {
-	for (var i = 0; i < channels.length; i ++) {
+	for (let i = 0; i < channels.length; i ++) {
 		if (id == channels[i].id) {
 			return i;
 		}
@@ -127,8 +127,8 @@ function getChannels(id) {
 	return -1;
 }
 function searchChannels(chartId) {
-	for (var i = 0; i < channels.length; i ++) {
-		for (var j = 0; j < channels[i].subscribedCharts.length; j ++) {
+	for (let i = 0; i < channels.length; i ++) {
+		for (let j = 0; j < channels[i].subscribedCharts.length; j ++) {
 			if (channels[i].subscribedCharts[j] == chartId) {
 				return i;
 			}
@@ -137,20 +137,20 @@ function searchChannels(chartId) {
 	return -1;
 }
 
-var cfgdCookie = [];
+let cfgdCookie = [];
 
-var intervalId = null;
+let intervalId = null;
 
-function init() {
+function dEInit() {
 	if (typeof DFLT_ROW != 'undefined') MAX_ROW = DFLT_ROW;
 	if (typeof DFLT_COL != 'undefined') MAX_COL = DFLT_COL;
 	if (typeof DFLT_DRAG_ENABLED != 'undefined') DRAG_CHART_ENABLED = DFLT_DRAG_ENABLED;
 
 	// Initialize the 2-d array marking available space on the grid
 	avlbPosition = new Array(MAX_ROW);
-	for (var i = 0; i < MAX_ROW; i ++) {
+	for (let i = 0; i < MAX_ROW; i ++) {
 		avlbPosition[i] = new Array(MAX_COL);
-		for (var j = 0; j < MAX_COL; j ++) {
+		for (let j = 0; j < MAX_COL; j ++) {
 			avlbPosition[i][j] = 0;
 		}
 	}
@@ -159,9 +159,9 @@ function init() {
 	buildFramework();
 
 	// Draw chart grid place holders
-	var l1st = d3.select(".charts");
-	for (var i = 1; i <= MAX_ROW; i ++) {
-		for (var j = 1; j <= MAX_COL; j ++) {
+	let l1st = d3.select(".charts");
+	for (let i = 1; i <= MAX_ROW; i ++) {
+		for (let j = 1; j <= MAX_COL; j ++) {
 			l1st.append("li")
 				.attr("class", "chart phr r" + i + " c" + j + " w1 h1")
 				.attr("ondragover", "allowDrop(event)")
@@ -171,7 +171,7 @@ function init() {
 
 	// Add available charts to the charts drop-down list
 	l1st = d3.select("#charts-list");
-	for (var key in avlbCharts) {
+	for (let key in avlbCharts) {
 		if (avlbCharts[key].id && avlbCharts[key].name) {
 			l1st.append("option").attr("value", avlbCharts[key].id).html(avlbCharts[key].name);
 		}
@@ -179,8 +179,8 @@ function init() {
 
 	// Add options of no. of rows to drop down boxes.
 	l1st = d3.select("#charts-row");
-	var l2st = d3.select("#charts-height");
-	for (var i = 1; i <= MAX_ROW; i ++) {
+	let l2st = d3.select("#charts-height");
+	for (let i = 1; i <= MAX_ROW; i ++) {
 		l1st.append("option").attr("value", i).html(i);
 		l2st.append("option").attr("value", i).html(i);
 	}
@@ -188,22 +188,23 @@ function init() {
 	// Add options of no. of column to drop down boxes.
 	l1st = d3.select("#charts-col");
 	l2st = d3.select("#charts-width");
-	for (var i = 1; i <= MAX_COL; i ++) {
+	for (let i = 1; i <= MAX_COL; i ++) {
 		l1st.append("option").attr("value", i).html(i);
 		l2st.append("option").attr("value", i).html(i);
 	}
 
 	// Start configured charts
-	var cooks = document.cookie.split(";");
-	var confg = "";
-	for (var idx = 0; idx < cooks.length; idx ++) {
-		var cok = cooks[idx].trim();
-		var pos = cok.indexOf(COOK_PFX);
+	let cooks = document.cookie.split(";");
+	let confg = "";
+	for (let idx = 0; idx < cooks.length; idx ++) {
+		let cok = cooks[idx].trim();
+		let pos = cok.indexOf(COOK_PFX);
 		if (pos >= 0) {
 			confg = cok.substring(pos + COOK_PFX.length, cok.length);
 			break;
 		}
 	}
+	console.log(confg);
 
 	// Default channels and charts
 	if ((confg.trim() == "") || (confg.trim() == "[]")) {
@@ -216,10 +217,10 @@ function init() {
 	}
 
 	// Build channels and charts from cookie
-	var startDelay = 1;
+	let startDelay = 1;
 	if (confg.trim() != "") {
-		var last = JSON.parse(confg);
-		for (var idx = 0; idx < last.length; idx ++) {
+		let last = JSON.parse(confg);
+		for (let idx = 0; idx < last.length; idx ++) {
 			if (last[idx].channelId) {
 				setTimeout(function(obj) {
 						if (obj.interval) {
@@ -230,7 +231,7 @@ function init() {
 				}, 100 * (idx + 1), last[idx]);
 			} else if (last[idx].chartId) {
 				setTimeout(function(obj) {
-						showChart(obj.chartId, obj.row, obj.column, obj.width, obj.height, obj.interval, obj);
+						showChart(obj.chartId, obj.row, obj.column, obj.width, obj.height, obj);
 				}, 100 * (idx + 1), last[idx]);
 			}
 		}
@@ -246,13 +247,13 @@ function init() {
 
 function start() {
 	intervalId = setInterval(function() {
-			for (var i = 0; i < cfgdCharts.length; i ++) {
-				if (cfgdCharts[i] && (typeof cfgdCharts[i].refresh === "function")) {
-					cfgdCharts[i].refresh(RUN_INTERVAL); // For charts do not get data from channel
-				}
-			}
+			// for (let i = 0; i < cfgdCharts.length; i ++) {
+			// 	if (cfgdCharts[i] && (typeof cfgdCharts[i].refresh === "function")) {
+			// 		cfgdCharts[i].refresh(RUN_INTERVAL); // For charts do not get data from channel
+			// 	}
+			// }
 
-			for (var j = 0; j < channels.length; j ++) {
+			for (let j = 0; j < channels.length; j ++) {
 				if (channels[j] && (typeof channels[j].run === "function")) {
 					channels[j].run(RUN_INTERVAL);
 				}
@@ -266,7 +267,7 @@ function stop() {
 }
 
 addEventListener('click', function(event) {
-		var idx;
+		let idx;
 		switch (event.target.tagName) {
 		case "IMG":
 			event.preventDefault();
@@ -288,6 +289,13 @@ addEventListener('click', function(event) {
 				d3.select("#charts-row").attr("disabled", null);
 				d3.select("#charts-col").node().value = 1;
 				d3.select("#charts-col").attr("disabled", null);
+
+				// Add available channels to the channel drop-down list
+				d3.selectAll(".chnl-optn").remove();
+				let optn = d3.select("#charts-channel");
+				for (let i = 0; i < channels.length; i ++) {
+					optn.append("option").attr("class", "chnl-optn").attr("value", channels[i].id).html(channels[i].name);
+				}
 				break;
 
 			case "doc-control":
@@ -302,7 +310,7 @@ addEventListener('click', function(event) {
 
 			default:
 				if (event.target.parentElement && event.target.parentElement.parentElement) {
-					var elem = event.target.parentElement.parentElement;
+					let elem = event.target.parentElement.parentElement;
 					idx = getCfgdCharts(elem.id);
 					if (idx >= 0) {
 						if (typeof cfgdCharts[idx].config === "function") {
@@ -315,17 +323,17 @@ addEventListener('click', function(event) {
 
 						// Add available channels to the channel drop-down list
 						d3.selectAll(".chnl-optn").remove();
-						var optn = d3.select("#setting-channel");
-						var jdx = searchChannels(cfgdCharts[idx].domId);
-						var cid = '';
+						let optn = d3.select("#setting-channel");
+						let jdx = searchChannels(cfgdCharts[idx].domId);
+						let cid = '';
 						if (jdx >= 0) {
 							cid = channels[jdx].id;
 						}
-						for (var i = 0; i < channels.length; i ++) {
+						for (let i = 0; i < channels.length; i ++) {
 							optn.append("option").attr("class", "chnl-optn").attr("value", channels[i].id).html(channels[i].name);
 						}
 						if (cid != '') d3.select("#setting-channel").node().value = cid;
-						d3.select("#setting-intv").node().value = cfgdCharts[idx].updateInterval;
+						// d3.select("#setting-intv").node().value = cfgdCharts[idx].updateInterval;
 
 						if (typeof cfgdCharts[idx].buildExport === "function") {
 							d3.select("#setting-save").style("display", null);
@@ -365,7 +373,7 @@ addEventListener('click', function(event) {
 				break;
 
 			case "channel-okay":
-				var cid, nmn, itv, url, val, max = 0;
+				let cid, nmn, itv, url, val, max = 0;
 				for (idx = 0; idx < channels.length; idx ++) {
 					cid = d3.select(".channel-id-" + (idx+1)).node().value;
 					val = parseInt(cid.slice(-3));
@@ -408,21 +416,24 @@ addEventListener('click', function(event) {
 				break;
 
 			case "charts-okay":
-				var ivr = parseInt(d3.select("#charts-intv").node().value);
-				var row = parseInt(d3.select("#charts-row").node().value);
-				var col = parseInt(d3.select("#charts-col").node().value);
-				var wdt = parseInt(d3.select("#charts-width").node().value);
-				var hgt = parseInt(d3.select("#charts-height").node().value);
-				var eid = d3.select("#charts-list").node().value; // This is the chart's id, not the DOM id.
+				// let ivr = parseInt(d3.select("#charts-intv").node().value);
+				let row = parseInt(d3.select("#charts-row").node().value);
+				let col = parseInt(d3.select("#charts-col").node().value);
+				let wdt = parseInt(d3.select("#charts-width").node().value);
+				let hgt = parseInt(d3.select("#charts-height").node().value);
+				let eid = d3.select("#charts-list").node().value; // This is the chart's id, not the DOM id.
+				let chnl = d3.select("#charts-channel").node().value;
 
 				if (eid != "-") {
 					if (typeof avlbCharts[eid].configed === "function") {
 						avlbCharts[eid].configed(eid, function() {
-								var cook = avlbCharts[eid].toCookie(row, col, wdt, hgt, ivr);
-								showChart(eid, row, col, wdt, hgt, ivr, cook);
+								let cook = avlbCharts[eid].toCookie(row, col, wdt, hgt);
+								let rid = showChart(eid, row, col, wdt, hgt, cook);
+								updateChannelSubscription(rid, chnl);
 						});
 					} else {
-						showChart(eid, row, col, wdt, hgt, ivr);
+						let rid = showChart(eid, row, col, wdt, hgt);
+						updateChannelSubscription(rid, chnl);
 					}
 				}
 				// Don't need to break here...
@@ -434,7 +445,7 @@ addEventListener('click', function(event) {
 				break;
 
 			case "setting-remove":
-				var id0 = d3.select("#setting-charts").node().value;
+				let id0 = d3.select("#setting-charts").node().value;
 				idx = getCfgdCharts(id0);
 				if (idx >= 0) {
 					if (typeof cfgdCharts[idx].configCancel === "function") {
@@ -448,47 +459,26 @@ addEventListener('click', function(event) {
 				break;
 
 			case "setting-okay":
-				var rid = d3.select("#setting-charts").node().value;
+				let rid = d3.select("#setting-charts").node().value;
 				idx = getCfgdCharts(rid);
 				if (idx >= 0) {
 					// Defult setting(s)
-					var intv = parseInt(d3.select("#setting-intv").node().value);
-					if (!isNaN(intv)) {
-						cfgdCharts[idx].updateInterval = intv;
-					}
+					// let intv = parseInt(d3.select("#setting-intv").node().value);
+					// if (!isNaN(intv)) {
+					// 	cfgdCharts[idx].updateInterval = intv;
+					// }
 
-					var chnl = d3.select("#setting-channel").node().value;
-					var count;
-					for (var i = 0; i < channels.length; i ++) {
-						if (channels[i].id == chnl) {
-							// Chart 'rid' subscribed to channel 'chnl' just now
-							count = 0;
-							for (var j = 0; j < channels[i].subscribedCharts.length; j ++) {
-								if (channels[i].subscribedCharts[j] == rid) count ++;
-							}
-							if (count == 0) {
-								channels[i].subscribedCharts[channels[i].subscribedCharts.length] = rid;
-								updateCookieChannel(channels[i].id);
-							}
-						} else {
-							// Remove 'rid' from any previously subscribed channels
-							for (var j = 0; j < channels[i].subscribedCharts.length; j ++) {
-								if (channels[i].subscribedCharts[j] == rid) {
-									channels[i].subscribedCharts.splice(j, 1);
-									updateCookieChannel(channels[i].id);
-								}
-							}
-						}
-					}
+					let chnl = d3.select("#setting-channel").node().value;
+					updateChannelSubscription(rid, chnl);
 					showChannels();
 
 					// Custom settings
 					if (typeof cfgdCharts[idx].configed === "function") {
 						cfgdCharts[idx].configed(rid, function() {
 								updateCookieCharts(rid);
-								if (typeof cfgdCharts[idx].render === "function") {
-									cfgdCharts[idx].render();
-								}
+								// if (typeof cfgdCharts[idx].render === "function") {
+								// 	cfgdCharts[idx].render();
+								// }
 						});
 					}
 				}
@@ -498,7 +488,7 @@ addEventListener('click', function(event) {
 				d3.select("#disable-bg").style("display", "none");
 				d3.select("#setting-custom").html("");
 
-				var id1 = d3.select("#setting-charts").node().value;
+				let id1 = d3.select("#setting-charts").node().value;
 				idx = getCfgdCharts(id1);
 				if (idx >= 0) {
 					if (typeof cfgdCharts[idx].configCancel === "function") {
@@ -512,7 +502,7 @@ addEventListener('click', function(event) {
 				d3.select("#disable-bg").style("display", "none");
 				d3.select("#setting-custom").html("");
 
-				var id2 = d3.select("#setting-charts").node().value;
+				let id2 = d3.select("#setting-charts").node().value;
 				idx = getCfgdCharts(id2);
 				if (idx >= 0) {
 					if (typeof cfgdCharts[idx].buildExport === "function") {
@@ -528,7 +518,7 @@ addEventListener('click', function(event) {
 
 addEventListener('dblclick', function(event) {
 		// No chart setup at this position yet, show add charts dialog
-		var grid = getGrid(event.target);
+		let grid = getGrid(event.target);
 		if (grid) {
 			d3.select("#charts-dialog").style("display", "block");
 			d3.select("#disable-bg").style("display", "block");
@@ -537,6 +527,13 @@ addEventListener('dblclick', function(event) {
 			d3.select("#charts-row").attr("disabled", "");
 			d3.select("#charts-col").node().value = grid.column;
 			d3.select("#charts-col").attr("disabled", "");
+
+			// Add available channels to the channel drop-down list
+			d3.selectAll(".chnl-optn").remove();
+			let optn = d3.select("#charts-channel");
+			for (let i = 0; i < channels.length; i ++) {
+				optn.append("option").attr("class", "chnl-optn").attr("value", channels[i].id).html(channels[i].name);
+			}
 		}
 });
 
@@ -545,9 +542,9 @@ addEventListener('change', function(event) {
 			switch (event.target.id) {
 			case "charts-list":
 				event.preventDefault();
-				if (avlbCharts[event.target.value].updateInterval) {
-					d3.select("#charts-intv").node().value = avlbCharts[event.target.value].updateInterval;
-				}
+				// if (avlbCharts[event.target.value].updateInterval) {
+				// 	d3.select("#charts-intv").node().value = avlbCharts[event.target.value].updateInterval;
+				// }
 				if (avlbCharts[event.target.value].minGridWdth) {
 					d3.select("#charts-width").node().value = avlbCharts[event.target.value].minGridWdth;
 				}
@@ -570,8 +567,8 @@ addEventListener('change', function(event) {
  * Clone, display and start a chart on the specific position.
  * elmId - Unique ID of the chart object, not the ID used in DOM.
  */
-function showChart(elmId, row, col, wdth, hght, intv, cook) {
-	var domId = elmId + row + col;
+function showChart(elmId, row, col, wdth, hght, cook) {
+	let domId = elmId + row + col;
 	if (getCfgdCharts(domId) < 0) {
 		switch (hasEnoughRoom(row, col, wdth, hght)) {
 		case 4:
@@ -587,9 +584,9 @@ function showChart(elmId, row, col, wdth, hght, intv, cook) {
 			alert("There is not enough room to fit the chart '" + avlbCharts[elmId].name + "'");
 			break;
 		case 0:
-			var objt = new avlbCharts[elmId].constructor(domId);
-			objt.updateInterval = intv;
-			var cntr = d3.select(".charts")
+			let objt = new avlbCharts[elmId].constructor(domId);
+			// objt.updateInterval = intv;
+			let cntr = d3.select(".charts")
 				.append("li")
 					.attr("id", domId).attr("class", "chart tbl r" + row + " c" + col + " w" + wdth + " h" + hght)
 					.attr("ondragstart", "drag(event)").attr("ondragend", "dragEnded(event)");
@@ -612,7 +609,7 @@ function showChart(elmId, row, col, wdth, hght, intv, cook) {
 						}
 
 						cfgdCharts[cfgdCharts.length] = objt;
-						addCookieCharts(domId, elmId, row, col, wdth, hght, intv);
+						addCookieCharts(domId, elmId, row, col, wdth, hght);
 				});
 			} else {
 				setPositions(row, col, wdth, hght, 1, true);
@@ -626,21 +623,22 @@ function showChart(elmId, row, col, wdth, hght, intv, cook) {
 				}
 
 				cfgdCharts[cfgdCharts.length] = objt;
-				addCookieCharts(domId, elmId, row, col, wdth, hght, intv);
+				addCookieCharts(domId, elmId, row, col, wdth, hght);
 			}
-			break;
+			return domId;
 		}
 	} else {
 		alert("Chart " + domId + " already exists");
 	}
+	return null;
 }
 
 function removeChart(rid) {
-	var chart = d3.select("#"+rid);
+	let chart = d3.select("#"+rid);
 	if (chart) {
-		var grid = getGrid(chart.node());
+		let grid = getGrid(chart.node());
 		if (grid) {
-			var idx = getCfgdCharts(rid);
+			let idx = getCfgdCharts(rid);
 			if (idx >= 0) {
 				removeCookieCharts(cfgdCharts[idx].id, grid.row, grid.column);
 				cfgdCharts.splice(idx, 1);
@@ -651,15 +649,15 @@ function removeChart(rid) {
 	}
 }
 
-function addCookieCharts(domId, elmId, row, col, wdth, hght, intv) {
-	var cook = {};
-	var idx = getCfgdCharts(domId);
+function addCookieCharts(domId, elmId, row, col, wdth, hght) {
+	let cook = {};
+	let idx = getCfgdCharts(domId);
 	if (idx >= 0) {
-		cook = cfgdCharts[idx].toCookie(row, col, wdth, hght, intv);
+		cook = cfgdCharts[idx].toCookie(row, col, wdth, hght);
 	}
 	cfgdCookie[cfgdCookie.length] = cook;
 
-	var expr = new Date();
+	let expr = new Date();
 	expr.setYear(expr.getFullYear() + 1);
 	document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 
@@ -667,19 +665,19 @@ function addCookieCharts(domId, elmId, row, col, wdth, hght, intv) {
 }
 
 function updateCookieCharts(domId) {
-	var cook = {};
-	var i = getCfgdCharts(domId);
+	let cook = {};
+	let i = getCfgdCharts(domId);
 	if (i >= 0) {
-		for (var j = 0; j < cfgdCookie.length; j ++) {
-			var row = cfgdCookie[j].row;
-			var col = cfgdCookie[j].column;
-			var wdth = cfgdCookie[j].width;
-			var hght = cfgdCookie[j].height;
-			var intv = cfgdCookie[j].interval;
+		for (let j = 0; j < cfgdCookie.length; j ++) {
+			let row = cfgdCookie[j].row;
+			let col = cfgdCookie[j].column;
+			let wdth = cfgdCookie[j].width;
+			let hght = cfgdCookie[j].height;
+			// let intv = cfgdCookie[j].interval;
 			if ((cfgdCookie[j].chartId + row + col) == domId) {
-				cfgdCookie[j] = cfgdCharts[i].toCookie(row, col, wdth, hght, intv);
+				cfgdCookie[j] = cfgdCharts[i].toCookie(row, col, wdth, hght);
 
-				var expr = new Date();
+				let expr = new Date();
 				expr.setYear(expr.getFullYear() + 1);
 				document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 				break;
@@ -689,8 +687,8 @@ function updateCookieCharts(domId) {
 }
 
 function removeCookieCharts(elmId, row, col) {
-	var cook = {};
-	for (var idx = 0; idx < cfgdCookie.length; idx ++) {
+	let cook = {};
+	for (let idx = 0; idx < cfgdCookie.length; idx ++) {
 		if ((cfgdCookie[idx].chartId == elmId) && (cfgdCookie[idx].row == row) && (cfgdCookie[idx].column == col)) {
 			cook = cfgdCookie[idx];
 			cfgdCookie.splice(idx, 1);
@@ -698,7 +696,7 @@ function removeCookieCharts(elmId, row, col) {
 		}
 	}
 
-	var expr = new Date();
+	let expr = new Date();
 	expr.setYear(expr.getFullYear() + 1);
 	document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 
@@ -707,16 +705,16 @@ function removeCookieCharts(elmId, row, col) {
 
 function getGrid(element) {
 	regex.lastIndex = 0;
-	var matches = regex.exec(element.className);
+	let matches = regex.exec(element.className);
 
 	if (matches) {
-		var r = parseInt(matches[1]);
-		var c = parseInt(matches[2]);
-		var w = parseInt(matches[3]);
-		var h = parseInt(matches[4]);
+		let r = parseInt(matches[1]);
+		let c = parseInt(matches[2]);
+		let w = parseInt(matches[3]);
+		let h = parseInt(matches[4]);
 
 		if ((r > 0) && (r <= MAX_ROW) && (c > 0) && (c <= MAX_COL) && (w > 0) && (w <= MAX_COL) && (h > 0) && (h <= MAX_ROW)) {
-			var rtn = {};
+			let rtn = {};
 			rtn[KEY_ROW] = r;
 			rtn[KEY_COL] = c;
 			rtn[KEY_WDTH] = w;
@@ -731,14 +729,14 @@ function getGrid(element) {
 // **** Drag & Drop functions ****
 // TODO: After drag/drop, need to update the channel subscription list with new domId!!!
 function drag(event) {
-	var domId = event.target.id;
-	var idx = getCfgdCharts(domId);
+	let domId = event.target.id;
+	let idx = getCfgdCharts(domId);
 	if (idx >= 0) {
-		var obj = getGrid(event.target);
+		let obj = getGrid(event.target);
 		obj.idx = idx;
 		obj.id = cfgdCharts[idx].id;
 		obj.domId = cfgdCharts[idx].domId;
-		obj.interval = cfgdCharts[idx].updateInterval;
+		// obj.interval = cfgdCharts[idx].updateInterval;
 		event.dataTransfer.setData("text", JSON.stringify(obj));
 
 		setTimeout(function() {
@@ -754,14 +752,19 @@ function allowDrop(event) {
 
 function drop(event) {
 	event.preventDefault();
-	var obj = JSON.parse(event.dataTransfer.getData("text"));
-	var grd = getGrid(event.target);
+	let obj = JSON.parse(event.dataTransfer.getData("text"));
+	let grd = getGrid(event.target);
 	if (hasEnoughRoom(grd[KEY_ROW], grd[KEY_COL], obj[KEY_WDTH], obj[KEY_HGHT]) == 0) {
-		var cook = removeCookieCharts(obj.id, obj.row, obj.column);
+		let chnl = searchChannels(obj.domId);
+		let cook = removeCookieCharts(obj.id, obj.row, obj.column);
 		cook.row = grd.row;
 		cook.column = grd.column;
 		removeChart(obj.domId);
-		showChart(obj.id, grd.row, grd.column, obj.width, obj.height, obj.interval, cook);
+		let newid = showChart(obj.id, grd.row, grd.column, obj.width, obj.height, cook);
+		if (newid && (chnl >= 0)) {
+			updateChannelSubscription(newid, channels[chnl].id);
+			removeChannelSubscription(obj.domId, channels[chnl].id);
+		}
 	} else {
 		dragCanceled(obj.domId, obj[KEY_ROW], obj[KEY_COL], obj[KEY_WDTH], obj[KEY_HGHT]);
 	}
@@ -770,10 +773,10 @@ function drop(event) {
 function dragEnded(event) {
 	event.preventDefault();
 	if (event.dataTransfer.dropEffect == "none") {
-		var domId = event.target.id;
-		var idx = getCfgdCharts(domId);
+		let domId = event.target.id;
+		let idx = getCfgdCharts(domId);
 		if (idx >= 0) {
-			var obj = getGrid(event.target);
+			let obj = getGrid(event.target);
 			dragCanceled(domId, obj[KEY_ROW], obj[KEY_COL], obj[KEY_WDTH], obj[KEY_HGHT]);
 		}
 	}
@@ -786,7 +789,7 @@ function dragCanceled(domId, row, col, wdth, hght) {
 
 // **** Util functions ****
 function accessData(url, callBack, cnt) {
-	var xmlhttp = new XMLHttpRequest();
+	let xmlhttp = new XMLHttpRequest();
 
 	if (!cnt) cnt = 0;
 	xmlhttp.onreadystatechange = function() {
@@ -818,12 +821,12 @@ function accessData(url, callBack, cnt) {
 function buildCss(headerHeight) {
 	if (!headerHeight) headerHeight = topMargin;
 
-	var buff = '';
-	for (var i = 1; i <= MAX_ROW; i ++) {
+	let buff = '';
+	for (let i = 1; i <= MAX_ROW; i ++) {
 		buff += '.h' + i + ' { height: calc(((100% - ' + (headerHeight + btmMargin) + 'px) / ' + MAX_ROW + ') * ' + i + ' - ' + (cellGap * 2) + 'px); }\n';
 		buff += '.r' + i + ' { top: calc(((100% - ' + (headerHeight + btmMargin) + 'px) / ' + MAX_ROW + ') * ' + (i - 1) + ' + ' + (cellGap + headerHeight) + 'px); }\n';
 	}
-	for (var i = 1; i <= MAX_COL; i ++) {
+	for (let i = 1; i <= MAX_COL; i ++) {
 		buff += '.w' + i + ' { width: calc(((100% - ' + (lftMargin + rgtMargin) + 'px) / ' + MAX_COL + ') * ' + i + ' - ' + (cellGap * 2) + 'px); }\n';
 		buff += '.c' + i + ' { left: calc(((100% - ' + (lftMargin + rgtMargin) + 'px) / ' + MAX_COL + ') * ' + (i - 1) + ' + ' + (cellGap + lftMargin) + 'px); }\n';
 	}
@@ -832,19 +835,19 @@ function buildCss(headerHeight) {
 }
 
 function buildFramework() {
-	var body = d3.select("body");
+	let body = d3.select("body");
 
-	var list = body.select(".charts");
+	let list = body.select(".charts");
 	if (list.empty()) {
 		list = body.append("ul").attr("class", "charts");
 	}
 	list.style("list-style", "none");
 
-	var dimen = list.node().getBoundingClientRect(); // Get height of header
+	let dimen = list.node().getBoundingClientRect(); // Get height of header
 	buildCss(dimen.top);
 
 	// Controls
-	var ctrl = body.append("div").attr("class", "tbl master-cntrl");
+	let ctrl = body.append("div").attr("class", "tbl master-cntrl");
 	ctrl.append("a").attr("href", "javascript:;").append("img").attr("id", "doc-refresh").attr("src", IMG_REFRESH);
 	ctrl.append("span").html("&nbsp;");
 	ctrl.append("a").attr("href", "javascript:;").append("img").attr("id", "doc-control").attr("src", IMG_PAUSE);
@@ -856,7 +859,7 @@ function buildFramework() {
 	body.append("div").attr("id", "disable-bg"); // Transparent dark background when dialog boxes displayed
 
 	// Channel dialog
-	var tabl = body.append("div").attr("id", "channel-dialog")
+	let tabl = body.append("div").attr("id", "channel-dialog")
 		.append("form").attr("id", "channel-form").attr("name", "channel-form")
 		.append("table").attr("id", "channel-tbl").attr("class", "dialog");
 	tabl.append("th").html("");
@@ -864,7 +867,7 @@ function buildFramework() {
 	tabl.append("th").html("Channel");
 	tabl.append("th").html("Run Interval");
 	tabl.append("th").html("URL");
-	var trow = tabl.append("tr").attr("id", "channel-insertHere");
+	let trow = tabl.append("tr").attr("id", "channel-insertHere");
 	trow.append("td").attr("valign", "top").append("input").attr("type", "checkbox").attr("class", "channel-slct-0").attr("name", "channel-slct-0");
 	trow.append("td").attr("valign", "top").append("input").attr("type", "text").attr("class", "channel-id-0 ronly").attr("name", "channel-id-0")
 		.attr("readonly", "").attr("tabindex", "-1");
@@ -873,7 +876,7 @@ function buildFramework() {
 	trow.append("td").append("textarea").attr("class", "channel-url-0").style("width", "300px");
 	trow = tabl.append("tr");
 	trow.append("td")
-	var tcll = trow.append("td").attr("colspan", "3");
+	let tcll = trow.append("td").attr("colspan", "3");
 	tcll.append("input").attr("type", "button").attr("name", "channel-clear").attr("value", "Remove all channels").style("margin-right", "2px");
 	tcll.append("input").attr("type", "button").attr("name", "channel-delete").attr("value", "Delete selected");
 	tcll = trow.append("td").style("text-align", "right").style("padding-right", "10px");
@@ -889,15 +892,15 @@ function buildFramework() {
 	trow.append("td")
 		.append("select").attr("id", "charts-list").attr("name", "charts-list")
 		.append("option").attr("value", "-").html("-- Select --");
-//	trow = tabl.append("tr");
-//	trow.append("td").style("text-align", "right").html("Channel:");
-//	trow.append("td")
-//		.append("select").attr("id", "charts-channel").attr("name", "charts-channel")
-//		.append("option").attr("value", "-").html("-- Select --");
-	trow = tabl.append("tr");
-	trow.append("td").style("text-align", "right").html("Refresh (ms):");
-	trow.append("td").style("padding-left", "15px")
-		.append("input").attr("type", "text").attr("id", "charts-intv").attr("name", "charts-intv").style("width", "80px");
+	// trow = tabl.append("tr");
+	// trow.append("td").style("text-align", "right").html("Refresh (ms):");
+	// trow.append("td").style("padding-left", "15px")
+	// 	.append("input").attr("type", "text").attr("id", "charts-intv").attr("name", "charts-intv").style("width", "80px");
+	trow = tabl.append("tr").attr("class", "chnllist");
+	trow.append("td").style("text-align", "right").html("Channel:");
+	trow.append("td")
+		.append("select").attr("id", "charts-channel").attr("name", "charts-channel")
+		.append("option").attr("value", "-").html("-- Select --");
 	trow = tabl.append("tr");
 	trow.append("td").style("text-align", "right").html("Row:");
 	trow.append("td").style("padding-left", "15px")
@@ -929,7 +932,7 @@ function buildFramework() {
 	tabl = body.append("div").attr("id", "setting-dialog")
 		.append("form").attr("id", "setting-form").attr("name", "setting-form")
 		.append("table").attr("class", "dialog");
-	var tbdy = tabl.append("tbody");
+	let tbdy = tabl.append("tbody");
 	tcll = tbdy.append("tr").append("td").attr("class", "sttttl").attr("colspan", "2").style("text-align", "right");
 	tcll.append("span").attr("id", "setting-name");
 	tcll.append("span").html("&nbsp;");
@@ -939,10 +942,10 @@ function buildFramework() {
 	tcll.append("span").html("&nbsp;");
 	tcll.append("select").attr("id", "setting-channel").attr("name", "setting-channel")
 		.append("option").attr("value", "-").html("-- Select --");
-	tcll = tbdy.append("tr").append("td").attr("class", "sttttl").attr("colspan", "2").style("text-align", "right");
-	tcll.append("span").html("Refresh (ms)");
-	tcll.append("span").html("&nbsp;");
-	tcll.append("input").attr("type", "text").attr("id", "setting-intv").attr("name", "setting-intv").style("width", "80px");
+	// tcll = tbdy.append("tr").append("td").attr("class", "sttttl").attr("colspan", "2").style("text-align", "right");
+	// tcll.append("span").html("Refresh (ms)");
+	// tcll.append("span").html("&nbsp;");
+	// tcll.append("input").attr("type", "text").attr("id", "setting-intv").attr("name", "setting-intv").style("width", "80px");
 	tabl.append("tbody").attr("id", "setting-custom");
 	tcll = tabl.append("tr").append("td").attr("colspan", "2").style("text-align", "right");
 	tcll.append("input").attr("type", "button").attr("name", "setting-save").attr("id", "setting-save").attr("value", "Export")
@@ -977,17 +980,17 @@ function Chart(chartId) {
 	// Default values
 	this.minGridWdth = 1;
 	this.minGridHght = 1;
-	this.updateInterval = 500;
+	// this.updateInterval = 500;
 
 	// Interface
 	this.init = function() {
-		var elmId = "#"+this.domId;
-		var size = d3.select(elmId).node().getBoundingClientRect(); //'node()' get the actual DOM object
-		var ttld = d3.select(elmId).select(".chart-title");
+		let elmId = "#"+this.domId;
+		let size = d3.select(elmId).node().getBoundingClientRect(); //'node()' get the actual DOM object
+		let ttld = d3.select(elmId).select(".chart-title");
 
 		this.chartWdth = size.width - 5;
 		this.chartHght = size.height - 3;
-		var grph = d3.select(elmId).select(".chart-viz");
+		let grph = d3.select(elmId).select(".chart-viz");
 		if (grph.empty()) {
 			grph = d3.select(elmId + "Container").append("svg").attr("class", "chart-viz");
 		}
@@ -1003,40 +1006,41 @@ function Chart(chartId) {
 		}
 	};
 
-	var countDown = this.updateInterval;
-	this.shouldRun = function(elapse) {
-		countDown -= elapse;
-		if (countDown <= 0) {
-			countDown = this.updateInterval;
-			return true;
-		} else {
-			return false;
-		}
-	};
-	this.runNow = function() {
-		countDown = 0;
-	};
+	// let countDown = this.updateInterval;
+	// this.shouldRun = function(elapse) {
+	// 	countDown -= elapse;
+	// 	if (countDown <= 0) {
+	// 		countDown = this.updateInterval;
+	// 		return true;
+	// 	} else {
+	// 		return false;
+	// 	}
+	// };
+	// this.runNow = function() {
+	// 	countDown = 0;
+	// };
 
 	this.fromCookie = function(cook) {
 		if (cook) {
-			var v = parseInt(cook[KEY_INTV]);
-			if (!isNaN(v)) this.updateInterval = v;
+			if (cook[KEY_CHART] && (this.id !== cook[KEY_CHART])) console.log(this.id, cook[KEY_CHART], "?");
+	// 		let v = parseInt(cook[KEY_INTV]);
+	// 		if (!isNaN(v)) this.updateInterval = v;
 		}
 	};
 
-	this.toCookie = function(row, col, wdth, hght, intv) {
-		var cook = {};
+	this.toCookie = function(row, col, wdth, hght) {
+		let cook = {};
 		cook[KEY_CHART] = this.id;
 		cook[KEY_ROW] = row;
 		cook[KEY_COL] = col;
 		cook[KEY_WDTH] = wdth;
 		cook[KEY_HGHT] = hght;
-		cook[KEY_INTV] = intv;
+		// cook[KEY_INTV] = intv;
 		return cook;
 	};
 
 	this.getSnapshot = function() {
-		var idx = searchChannels(this.domId);
+		let idx = searchChannels(this.domId);
 		if (idx >= 0) {
 			return channels[idx].snapshot;
 		}
@@ -1045,17 +1049,17 @@ function Chart(chartId) {
 
 	this.export = function() {
 		if (typeof this.buildExport === "function") {
-			var snap = this.buildExport();
-			var blob = new Blob(snap, {type : 'text/csv'});
-			var name = this.id + ".csv";
+			let snap = this.buildExport();
+			let blob = new Blob(snap, {type : 'text/csv'});
+			let name = this.id + ".csv";
 
 			// Save snapshot
 			if (!isIE && !isEdge) {
-				var a = document.createElement('a');
+				let a = document.createElement('a');
 				a.href = window.URL.createObjectURL(blob);
 				a.download = name;
 				if (document.createEvent) {
-					var e = document.createEvent("MouseEvents");
+					let e = document.createEvent("MouseEvents");
 					e.initEvent('click', true, true);
 					a.dispatchEvent(e);
 				} else {
@@ -1070,7 +1074,6 @@ function Chart(chartId) {
 	/*
 	this.start = function() { };
 	this.render = function(rspn, elapse) { };
-	this.refresh = function(elapse) { };
 	this.config = function(element) { };
 	this.configed = function(domId, func) { };
 	this.configCancel = function(domId) { };
@@ -1082,8 +1085,8 @@ function Chart(chartId) {
 // *****************
 // **** Channel ****
 function addChannel(id, name, url, interval, subscribed) {
-	var len = channels.length;
-	for (var i = 0; i < len; i ++) {
+	let len = channels.length;
+	for (let i = 0; i < len; i ++) {
 		if ((id == channels[i].id) || (name == channels[i].name) || (url == channels[i].url)) {
 			console.log("Channel", id, name, url, "already exists");
 			return;
@@ -1095,7 +1098,7 @@ function addChannel(id, name, url, interval, subscribed) {
 	addCookieChannel(id);
 };
 function updateChannel(id, name, url, interval) {
-	var idx = getChannels(id);
+	let idx = getChannels(id);
 	if (idx >= 0) {
 		channels[idx].name = name;
 		channels[idx].url = url;
@@ -1104,7 +1107,7 @@ function updateChannel(id, name, url, interval) {
 	}
 }
 function removeChannel(id) {
-	var idx = getChannels(id);
+	let idx = getChannels(id);
 	if (idx >= 0) {
 		removeCookieChannel(channels[idx].id);
 		channels.splice(idx, 1);
@@ -1112,7 +1115,7 @@ function removeChannel(id) {
 };
 
 function showChannels() {
-	var insrt = d3.select("#channel-tbl");
+	let insrt = d3.select("#channel-tbl");
 
 	insrt.selectAll(".channels").remove();
 	insrt.select(".channel-slct-0").node().checked = false;
@@ -1121,8 +1124,8 @@ function showChannels() {
 	insrt.select(".channel-intv-0").node().value = "";
 	insrt.select(".channel-url-0").node().value = ""
 
-	var trow;
-	for (var i = 0; i < channels.length; i ++) {
+	let trow;
+	for (let i = 0; i < channels.length; i ++) {
 		trow = insrt.insert("tr", "#channel-insertHere").attr("class", "channels");
 		trow.append("td").attr("valign", "top").append("input").attr("type", "checkbox")
 			.attr("class", "channel-slct-" + (i+1)).attr("name", "channel-slct-" + (i+1));
@@ -1139,7 +1142,6 @@ function showChannels() {
 		trow.append("td").attr("valign", "top")
 			.append("textarea").attr("class", "channel-url-" + (i+1)).style("width", "300px")
 			.node().value = channels[i].url;
-			//.node().value = JSON.stringify(channels[i].subscribedCharts);
 	}
 }
 
@@ -1154,7 +1156,7 @@ function Channel(id, name, url, interval) {
 
 	this.snapshot;
 
-	var countDown = this.runInterval;
+	let countDown = this.runInterval;
 	this.shouldRun = function(elapse) {
 		countDown -= elapse;
 		if (countDown <= 0) {
@@ -1165,7 +1167,7 @@ function Channel(id, name, url, interval) {
 		}
 	};
 
-	var _this = this;
+	let _this = this;
 	this.run = function(elapse) {
 		if (!this.shouldRun(elapse)) {
 			return;
@@ -1176,8 +1178,8 @@ function Channel(id, name, url, interval) {
 					return;
 				}
 
-				var idx;
-				for (var i = 0; i < _this.subscribedCharts.length; i ++) {
+				let idx;
+				for (let i = 0; i < _this.subscribedCharts.length; i ++) {
 					idx = getCfgdCharts(_this.subscribedCharts[i]);
 					if (idx >= 0) {
 						if (cfgdCharts[idx]) {
@@ -1191,8 +1193,8 @@ function Channel(id, name, url, interval) {
 };
 
 function addCookieChannel(id) {
-	var cook = {};
-	var idx = getChannels(id);
+	let cook = {};
+	let idx = getChannels(id);
 
 	if (idx >= 0) {
 		cook[KEY_CHNLID] = channels[idx].id;
@@ -1202,7 +1204,7 @@ function addCookieChannel(id) {
 		cook[KEY_CHNLSUB] = channels[idx].subscribedCharts;
 		cfgdCookie[cfgdCookie.length] = cook;
 
-		var expr = new Date();
+		let expr = new Date();
 		expr.setYear(expr.getFullYear() + 1);
 		document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 	}
@@ -1211,8 +1213,8 @@ function addCookieChannel(id) {
 }
 
 function updateCookieChannel(id) {
-	var cook = {};
-	var idx = getChannels(id);
+	let cook = {};
+	let idx = getChannels(id);
 
 	if (idx >= 0) {
 		cook[KEY_CHNLID] = channels[idx].id;
@@ -1220,11 +1222,11 @@ function updateCookieChannel(id) {
 		cook[KEY_INTV] = channels[idx].runInterval;
 		cook[KEY_CHNLURL] = channels[idx].url;
 		cook[KEY_CHNLSUB] = channels[idx].subscribedCharts;
-		for (var j = 0; j < cfgdCookie.length; j ++) {
+		for (let j = 0; j < cfgdCookie.length; j ++) {
 			if (cfgdCookie[j].channelId == id) {
 				cfgdCookie[j] = cook;
 
-				var expr = new Date();
+				let expr = new Date();
 				expr.setYear(expr.getFullYear() + 1);
 				document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 				break;
@@ -1234,8 +1236,8 @@ function updateCookieChannel(id) {
 }
 
 function removeCookieChannel(id) {
-	var cook = {};
-	for (var idx = 0; idx < cfgdCookie.length; idx ++) {
+	let cook = {};
+	for (let idx = 0; idx < cfgdCookie.length; idx ++) {
 		if ((cfgdCookie[idx].channelId == id)) {
 			cook = cfgdCookie[idx];
 			cfgdCookie.splice(idx, 1);
@@ -1243,11 +1245,54 @@ function removeCookieChannel(id) {
 		}
 	}
 
-	var expr = new Date();
+	let expr = new Date();
 	expr.setYear(expr.getFullYear() + 1);
 	document.cookie = COOK_PFX + JSON.stringify(cfgdCookie) + "; expires=" + expr.toUTCString();
 
 	return cook;
+}
+
+function updateChannelSubscription(domId, chnId) {
+	if (domId && chnId) {
+		let count;
+		for (let i = 0; i < channels.length; i ++) {
+			if (channels[i].id == chnId) {
+				// Chart 'domId' subscribed to channel 'chnId' just now
+				count = 0;
+				for (let j = 0; j < channels[i].subscribedCharts.length; j ++) {
+					if (channels[i].subscribedCharts[j] == domId) count ++;
+				}
+				if (count == 0) {
+					channels[i].subscribedCharts[channels[i].subscribedCharts.length] = domId;
+					updateCookieChannel(channels[i].id);
+				}
+			} else {
+				// Remove 'domId' from any previously subscribed channels
+				for (let j = 0; j < channels[i].subscribedCharts.length; j ++) {
+					if (channels[i].subscribedCharts[j] == domId) {
+						channels[i].subscribedCharts.splice(j, 1);
+						updateCookieChannel(channels[i].id);
+					}
+				}
+			}
+		}
+	}
+}
+
+function removeChannelSubscription(domId, chnId) {
+	if (domId && chnId) {
+		for (let i = 0; i < channels.length; i ++) {
+			if (channels[i].id == chnId) {
+				for (let j = 0; j < channels[i].subscribedCharts.length; j ++) {
+					if (channels[i].subscribedCharts[j] == domId) {
+						channels[i].subscribedCharts.splice(j, 1);
+						updateCookieChannel(channels[i].id);
+					}
+				}
+				break;
+			}
+		}
+	}
 }
 
 
@@ -1255,7 +1300,7 @@ function removeCookieChannel(id) {
 ChannelSniffer = function(chartId) {
 	this.id = "channel-sniffer"; //Chart ID
 	this.name = "Channel Sniffer";
-	this.updateInterval = 1000;
+	// this.updateInterval = 1000;
 
 	this.domId = (!chartId) ? this.id : chartId; //Element ID in DOM
 
@@ -1273,56 +1318,57 @@ ChannelSniffer.prototype.constructor = ChannelSniffer;
 addAvailableCharts(new ChannelSniffer());
 
 // **** Sample chart implementation - date time widget ****
-var timeFormatSrver = d3.time.format("%Y-%m-%d %H:%M:%S");
-var timeFormatClk12 = d3.time.format("%I:%M");
-var timeFormatClk13 = d3.time.format("%p");
-var timeFormatClk24 = d3.time.format("%H:%M");
-var timeFormatScond = d3.time.format("%S");
-var timeFormatClndr = d3.time.format("%d %b %Y");
-var timeFormatWeekn = d3.time.format("%A");
+let timeFormatSrver = d3.timeParse("%Y-%m-%d %H:%M:%S");
+let timeFormatClk12 = d3.timeFormat("%I:%M");
+let timeFormatClk13 = d3.timeFormat("%p");
+let timeFormatClk24 = d3.timeFormat("%H:%M");
+let timeFormatScond = d3.timeFormat("%S");
+let timeFormatClndr = d3.timeFormat("%d %b %Y");
+let timeFormatWeekn = d3.timeFormat("%A");
 
 DateTimeWidget = function(chartId) {
 	Chart.call(this);
 
 	this.id = "datetime-widget"; //Chart ID
 	this.name = "Clock widget";
-	this.updateInterval = 1000;
+	// this.updateInterval = 1000;
 
 	this.domId = (!chartId) ? this.id : chartId; //Element ID in DOM
 
-	this.source = "Local"; // 'Local' - PC time, 'Server' - Server time, require URL 
+	// this.source = "Local"; // 'Local' - PC time, 'Server' - Server time, require URL 
 	this.format = "12"; // '12' - 12 hour format with am/pm, '24' - 24 hour format from 00 to 23
-	this.url = "";
+	// this.url = "";
 
-	this.start = function() {
-		this.refresh(this.updateInterval);
-	}
+	// this.start = function() {
+	// 	this.refresh(this.updateInterval);
+	// }
 
-	this.refresh = function(elapse) {
-		if (!this.shouldRun(elapse)) return;
+	this.render = function(rspn, elapse) {
+		// if (!this.shouldRun(elapse)) return;
 
-		var neti = d3.select("#"+this.domId).select(".chart-indct");
+		// if (this.source == "Local") {
+		// 	neti.style("display", "none");
+		// 	this.redraw(new Date());
+		// } else {
+		// 	neti.style("display", null);
+		// 	let obj = this;
+		// 	accessData(this.url, function(rspn) {
+		// 			if (rspn) {
+		// 				obj.redraw(timeFormatSrver(rspn["time"]));
+		// 			}
+		// 	});
+		// }
+		this.redraw(timeFormatSrver(rspn["time"]));
+	};
+
+	this.redraw = function(now) {
+		let neti = d3.select("#"+this.domId).select(".chart-indct");
 		if (neti.empty()) {
 			neti = d3.select("#"+this.domId).append("img").attr("src", IMG_NETWORK).attr("class", "chart-indct");
 		}
 
-		if (this.source == "Local") {
-			neti.style("display", "none");
-			this.redraw(new Date());
-		} else {
-			neti.style("display", null);
-			var obj = this;
-			accessData(this.url, function(rspn) {
-					if (rspn) {
-						obj.redraw(timeFormatSrver.parse(rspn["time"]));
-					}
-			});
-		}
-	};
-
-	this.redraw = function(now) {
-		var grph = d3.select("#"+this.domId).select(".chart-viz");
-		var bbx1, bbx3;
+		let grph = d3.select("#"+this.domId).select(".chart-viz");
+		let bbx1, bbx3;
 
 		if (grph.select(".clock.clockBig").empty()) {
 			grph.append("text")
@@ -1359,9 +1405,9 @@ DateTimeWidget = function(chartId) {
 		grph.select(".clock.calendar").text(timeFormatClndr(now));
 
 		if (bbx1 && bbx3) {
-			var bbx2 = grph.select(".clock.clockSmall").node().getBBox();
-			var xfactor = (this.chartWdth - 20) / (bbx1.width + bbx2.width + 5);
-			var yfactor = (this.chartHght / 2) / bbx1.height * .85;
+			let bbx2 = grph.select(".clock.clockSmall").node().getBBox();
+			let xfactor = (this.chartWdth - 20) / (bbx1.width + bbx2.width + 5);
+			let yfactor = (this.chartHght / 2) / bbx1.height * .85;
 
 			grph.select(".clock.clockBig").attr("transform", "scale(" + xfactor + ", " + yfactor + ")").attr("y", bbx1.height);
 			grph.select(".clock.clockSmall").attr("transform", "scale(" + xfactor + ", " + yfactor + ")").attr("y", bbx1.height);
@@ -1370,65 +1416,65 @@ DateTimeWidget = function(chartId) {
 		}
 	};
 
-	var superFromCookie = this.fromCookie;
+	let superFromCookie = this.fromCookie;
 	this.fromCookie = function(cook) {
 		superFromCookie.call(this, cook);
 		if (cook) {
-			this.source = cook["source"];
+			// this.source = cook["source"];
 			this.format = cook["format"];
-			this.url = cook["url"];
+			// this.url = cook["url"];
 		}
 	};
 
-	var superToCookie = this.toCookie;
-	this.toCookie = function(row, col, wdth, hght, intv) {
-		var cook = superToCookie.call(this, row, col, wdth, hght, intv);
-		cook["source"] = this.source;
+	let superToCookie = this.toCookie;
+	this.toCookie = function(row, col, wdth, hght) {
+		let cook = superToCookie.call(this, row, col, wdth, hght);
+		// cook["source"] = this.source;
 		cook["format"] = this.format;
-		cook["url"] = this.url;
+		// cook["url"] = this.url;
 		return cook;
 	};
 
 	this.config = function(element) {
 		element.html("");
-		d3.selectAll(".chnllist").style("display", "none");
-		d3.selectAll(".sttttl").style("text-align", "left");
+		// d3.selectAll(".chnllist").style("display", "none");
+		// d3.selectAll(".sttttl").style("text-align", "left");
 
-		var trow = element.append("tr");
+		let trow = element.append("tr");
 		trow.append("td").attr("class", "cfgDateTimeWidget").style("text-align", "right")
 			.append("input").attr("type", "checkbox").attr("class", "cfgFormat").attr("name", "setting-format");
 		trow.append("td").html("Use 24-hour format");
 
-		trow = element.append("tr");
-		trow.append("td").attr("class", "cfgDateTimeWidget").style("text-align", "right")
-			.append("input").attr("type", "checkbox").attr("class", "cfgSource").attr("name", "setting-source");
-		trow.append("td").html("Use server time");
+		// trow = element.append("tr");
+		// trow.append("td").attr("class", "cfgDateTimeWidget").style("text-align", "right")
+		// 	.append("input").attr("type", "checkbox").attr("class", "cfgSource").attr("name", "setting-source");
+		// trow.append("td").html("Use server time");
 
-		trow = element.append("tr");
-		trow.append("td").attr("colspan", "2").html("&nbsp;&nbsp;Server time URL");
-		element.append("tr").append("td").attr("class", "cfgDateTimeWidget").attr("colspan", "2").style("text-align", "right")
-			.append("textarea").attr("class", "cfgUrl").style("width", "300px");
+		// trow = element.append("tr");
+		// trow.append("td").attr("colspan", "2").html("&nbsp;&nbsp;Server time URL");
+		// element.append("tr").append("td").attr("class", "cfgDateTimeWidget").attr("colspan", "2").style("text-align", "right")
+		// 	.append("textarea").attr("class", "cfgUrl").style("width", "300px");
 
-		var obj = this;
+		let obj = this;
 		setTimeout(function() {
-				var ctrls = d3.selectAll(".cfgDateTimeWidget");
+				let ctrls = d3.selectAll(".cfgDateTimeWidget");
 				if (obj.format == "24")
 					ctrls.select(".cfgFormat").node().checked = true;
 				else
 					ctrls.select(".cfgFormat").node().checked = false;
-				if (obj.source == "Server")
-					ctrls.select(".cfgSource").node().checked = true;
-				else
-					ctrls.select(".cfgSource").node().checked = false;
-				ctrls.select(".cfgUrl").node().value = obj.url;
+				// if (obj.source == "Server")
+				// 	ctrls.select(".cfgSource").node().checked = true;
+				// else
+				// 	ctrls.select(".cfgSource").node().checked = false;
+				// ctrls.select(".cfgUrl").node().value = obj.url;
 		}, 70);
 	};
 
 	this.configed = function(domId, func) {
 		if (domId == this.domId) {
-			d3.selectAll(".chnllist").style("display", null);
-			d3.selectAll(".sttttl").style("text-align", "right");
-			var ctrls = d3.selectAll(".cfgDateTimeWidget");
+			// d3.selectAll(".chnllist").style("display", null);
+			// d3.selectAll(".sttttl").style("text-align", "right");
+			let ctrls = d3.selectAll(".cfgDateTimeWidget");
 
 			if (ctrls.select(".cfgFormat").node().checked) {
 				this.format = "24";
@@ -1436,26 +1482,26 @@ DateTimeWidget = function(chartId) {
 				this.format = "12";
 			}
 
-			if (ctrls.select(".cfgSource").node().checked) {
-				this.source = "Server";
-				d3.select("#"+this.domId).select(".chart-indct").style("display", null);
-			} else {
-				this.source = "Local";
-				d3.select("#"+this.domId).select(".chart-indct").style("display", "none");
-			}
+			// if (ctrls.select(".cfgSource").node().checked) {
+			// 	this.source = "Server";
+			// 	d3.select("#"+this.domId).select(".chart-indct").style("display", null);
+			// } else {
+			// 	this.source = "Local";
+			// 	d3.select("#"+this.domId).select(".chart-indct").style("display", "none");
+			// }
 
-			this.url = ctrls.select(".cfgUrl").node().value;
+			// this.url = ctrls.select(".cfgUrl").node().value;
 
 			func();
 		}
 	};
 
-	this.configCancel = function(domId) {
-		if (domId == this.domId) {
-			d3.selectAll(".chnllist").style("display", null);
-			d3.selectAll(".sttttl").style("text-align", "right");
-		}
-	}
+	// this.configCancel = function(domId) {
+	// 	if (domId == this.domId) {
+	// 		d3.selectAll(".chnllist").style("display", null);
+	// 		d3.selectAll(".sttttl").style("text-align", "right");
+	// 	}
+	// }
 };
 DateTimeWidget.prototype = new Chart();
 DateTimeWidget.prototype.constructor = DateTimeWidget;

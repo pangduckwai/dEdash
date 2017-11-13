@@ -8,15 +8,15 @@ const xsite = require('./xsite-dev'); // TODO - for DEV only
 const CONTENT_TYPE_KEY = 'Content-type';
 const SERVER_PORT = 8080;
 const MIME_MAP = {
-	'.ico' : { mime: 'image/x-icon',     encoding: '' },
+	'.ico' : { mime: 'image/x-icon' },
 	'.html': { mime: 'text/html',        encoding: 'utf8' },
 	'.js'  : { mime: 'text/javascript',  encoding: 'utf8' },
 	'.json': { mime: 'application/json', encoding: 'utf8' },
 	'.css' : { mime: 'text/css',         encoding: 'utf8' },
-	'.png' : { mime: 'image/png',        encoding: '' },
-	'.jpg' : { mime: 'image/jpeg',       encoding: '' },
+	'.png' : { mime: 'image/png' },
+	'.jpg' : { mime: 'image/jpeg' },
 	'.svg' : { mime: 'image/svg+xml',    encoding: 'utf8' },
-	'.pdf' : { mime: 'application/pdf',  encoding: '' },
+	'.pdf' : { mime: 'application/pdf' },
 	'.txt' : { mime: 'text/plain',       encoding: 'utf8' },
 	'.log' : { mime: 'text/plain',       encoding: 'utf8' }
 };
@@ -39,16 +39,9 @@ let responseRedirect = (response, redirectTo) => {
 };
 
 let serveFile = (pathname, succ, fail) => {
-	let extn = path.parse(pathname).ext;
-	let ctyp = 'text/plain'; // default
-	let encd = null;
-	if (extn) {
-		let map = MIME_MAP[extn];
-		if (map) {
-			ctyp = map.mime || 'text/plain';
-			encd = (map.encoding !== '') ? map.encoding : null;
-		}
-	}
+	let map = MIME_MAP[path.parse(pathname).ext || 'x'];
+	let ctyp = (map) ? (map.mime || 'text/plain') : 'text/plain';
+	let encd = (map) ? (map.encoding || null) : null;
 
 	fs.readFile(path.join('.', pathname), encd, (error, data) => {
 		if (error) {
@@ -91,11 +84,11 @@ http.createServer((req, res) => {
 		}
 
 		switch(request.pathname) {
-			case '/':
+		case '/':
 			responseRedirect(res);
 			break;
 
-			default:
+		default:
 			serveFile(request.pathname,
 				(sts, ctn, typ) => responseNormal(res, ctn, typ),
 				(sts, msg) => {
