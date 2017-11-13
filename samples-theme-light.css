@@ -1,0 +1,85 @@
+.enableAnchor{
+	color: blue;
+}
+.disableAnchor {
+    color: black;
+    pointer-events: none;
+}
+
+.block-rect {
+	fill: none;
+	stroke: #909090;
+	stroke-width: 1;
+}
+
+.block-line {
+	stroke: #909090;
+	stroke-width: 1;
+}
+
+.block-text {
+	fill: black;
+	font-size: .7em;
+}
+
+.block-slct {
+	fill: white;
+	pointer-events: visible;
+	opacity: 0.0;
+}
+
+.dtls-text {
+	fill: black;
+	font-size: .9em;
+}
+
+.peer-node {
+	fill: white;
+	stroke: black;
+	stroke-width: 2;
+}
+
+.peer-vnode {
+	fill: lightgreen;
+	stroke: black;
+	stroke-width: 2;
+}
+
+.peer-frme {
+	stroke: black;
+	stroke-width: 2;
+}
+
+.peer-line {
+	stroke: #909090;
+	stroke-width: 1;
+}
+
+.peer-text {
+	fill: black;
+	font-size: 1.2em;
+}
+
+.peer-vtext {
+	fill: green;
+	font-size: 1.2em;
+}
+
+.floor-text {
+	fill: black;
+}
+
+.floor-fill {
+	fill: #DDDDDD;
+}
+
+.floor-wall {
+	stroke: black;
+	stroke-width: 3;
+}
+
+.floor-desk {
+	fill: lightgrey;
+	stroke: black;
+	stroke-width: 1;
+}

@@ -1,0 +1,33 @@
+body {
+	background-color: #ffffff;
+	color: #000000;
+}
+
+a:active, a:link, a:visited {
+	color: blue;
+}
+
+.chart {
+	border-color: #e0e0e0;
+	background-color: #f0f0f0;
+}
+.dialog {
+	border-color: #ffffff;
+	background-color: #dddddd;
+	box-shadow: 10px 10px 5px #ffffff;
+}
+#disable-bg {
+	background-color: rgba(255, 255, 255, 0.7);
+}
+
+.clock {
+	fill: #005285;
+}
+
+.axis path, .axis line, .tick line {
+	stroke: black;
+}
+
+text.ctxt, .tick text {
+	fill: black;
+}
