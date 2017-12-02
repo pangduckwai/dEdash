@@ -1,7 +1,8 @@
 const http = require('http');
 const path = require('path');
-const url = require('url');
 const fs = require('fs');
+const url = require('url');
+const queryString = require('querystring');
 
 const xsite = require('./xsite-dev'); // TODO - for DEV only
 
@@ -57,7 +58,7 @@ let serveFile = (pathname, succ, fail) => {
 };
 
 http.createServer((req, res) => {
-	if (xsite.enable(req, res)) { return; } // TODO - for DEV only
+	if (xsite.enable(req, res)) { return; } // TODO - for DEV only, this allows cross site access
 
 	req.on('error', err => responseError(res, err, 500));
 	res.on('error', err => responseError(res, err, 500));
@@ -67,12 +68,12 @@ http.createServer((req, res) => {
 		buff += chunk;
 		if (buff.length > 1e6) req.connection.destroy(); // data larger than 1M
 	}).on('end', () => {
-		if (req.method == 'OPTIONS') {// TODO: Allow cross site for DEV
+		if (req.method == 'OPTIONS') {// TODO - for DEV only, this allows cross site access
 			responseNormal(res, '', 'text/plain');
 			return;
 		}
 
-		if (req.method !== 'GET') {
+		if ((req.method !== 'GET') && (req.method !== 'POST') && (req.method !== 'PUT')) {
 			responseError(res, "Unsupported method '" + req.method + "'", 500);
 			return;
 		}
@@ -83,9 +84,41 @@ http.createServer((req, res) => {
 			return;
 		}
 
+		let reqHeader = req.headers[CONTENT_TYPE_KEY.toLocaleLowerCase()];
+		
 		switch(request.pathname) {
 		case '/':
 			responseRedirect(res);
+			break;
+
+		case '/list-query-params':
+			let result = [];
+			for (let key in request.query) {
+				result.push("'" + key + "' = '" + request.query[key]);
+			}
+			responseNormal(res, JSON.stringify(result), 'text/plain');
+			break;
+
+		case '/list-form-values':
+			if ((buff.trim().length > 0) && (reqHeader) && reqHeader.includes('application/x-www-form-urlencoded')) {
+				let formDat = queryString.parse(buff);
+				let result = [];
+				for (let key in formDat) {
+					result.push("'" + key + "' = '" + formDat[key]);
+				}
+				responseNormal(res, JSON.stringify(result), 'text/plain');
+			} else {
+				responseError(res, "Invalid request content-type", 500);
+			}
+			break;
+
+		case '/show-json-body':
+			if ((buff.trim().length > 0) && (reqHeader) && reqHeader.includes('application/json')) {
+				let reqBody = JSON.parse(buff);
+				responseNormal(res, JSON.stringify(reqBody), 'application/json');
+			} else {
+				responseError(res, "Invalid request content-type", 500);
+			}
 			break;
 
 		default:
