@@ -4,7 +4,7 @@ const fs = require('fs');
 const url = require('url');
 const queryString = require('querystring');
 
-const xsite = require('./xsite-dev'); // TODO - for DEV only
+const xsite = require('./server-xsite'); // TODO - for DEV only
 
 const CONTENT_TYPE_KEY = 'Content-type';
 const SERVER_PORT = 8080;
@@ -78,51 +78,64 @@ http.createServer((req, res) => {
 			return;
 		}
 
-		let request = url.parse(req.url, true);
-		if (!request.pathname || !request.query) {
-			responseError(res, "Invalid request", 500);
-			return;
-		}
+		let reqUrl = url.parse(req.url, true);
+		let reqPath = reqUrl.pathname;
+		let reqQuery = reqUrl.query;
 
 		let reqHeader = req.headers[CONTENT_TYPE_KEY.toLocaleLowerCase()];
+		let formData, jsonObjt;
+		if ((buff.trim().length > 0) && (reqHeader)) {
+			if (reqHeader.includes('application/x-www-form-urlencoded')) {
+				formData = queryString.parse(buff);
+			} else if (reqHeader.includes(MIME_MAP['.json'].mime)) {
+				jsonObjt = JSON.parse(buff);
+			}
+		}
 		
-		switch(request.pathname) {
+		switch(reqUrl.pathname) {
 		case '/':
 			responseRedirect(res);
 			break;
 
-		case '/list-query-params':
-			let result = [];
-			for (let key in request.query) {
-				result.push("'" + key + "' = '" + request.query[key]);
-			}
-			responseNormal(res, JSON.stringify(result), 'text/plain');
+		case '/time':
+			let now = new Date();
+			res.setHeader(CONTENT_TYPE_KEY, MIME_MAP['.json'].mime);
+			res.end('{"time":"' + 
+				now.getFullYear() + '-' + ('0'+(now.getMonth() + 1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2) + ' ' +
+				('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2) + ':' + ('0'+now.getSeconds()).slice(-2) +
+			'"}');
 			break;
 
-		case '/list-form-values':
-			if ((buff.trim().length > 0) && (reqHeader) && reqHeader.includes('application/x-www-form-urlencoded')) {
-				let formDat = queryString.parse(buff);
-				let result = [];
-				for (let key in formDat) {
-					result.push("'" + key + "' = '" + formDat[key]);
+		case '/snoop':
+			let results = ['Snoop\n'];
+			if (reqQuery && (Object.keys(reqQuery).length > 0)) {
+				results.push('\nQuery param:\n');
+				for (let key in reqQuery) {
+					results.push("'" + key + "' = '" + reqQuery[key] + '\n');
 				}
-				responseNormal(res, JSON.stringify(result), 'text/plain');
-			} else {
-				responseError(res, "Invalid request content-type", 500);
 			}
-			break;
+			if (formData) {
+				if (results.length > 0) results.push('\n');
+				results.push('Form data:\n');
+				for (let key in formData) {
+					results.push("'" + key + "' = '" + formData[key] + '\n');
+				}
+			}
+			if (jsonObjt) {
+				if (results.length > 0) results.push('\n');
+				results.push('Input object:\n');
+				results.push(JSON.stringify(jsonObjt));
+			}
 
-		case '/show-json-body':
-			if ((buff.trim().length > 0) && (reqHeader) && reqHeader.includes('application/json')) {
-				let reqBody = JSON.parse(buff);
-				responseNormal(res, JSON.stringify(reqBody), 'application/json');
-			} else {
-				responseError(res, "Invalid request content-type", 500);
+			let result = '';
+			for (let i = 0; i < results.length; i ++) {
+				result += results[i];
 			}
+			responseNormal(res, result, 'text/plain');
 			break;
 
 		default:
-			serveFile(request.pathname,
+			serveFile(reqUrl.pathname,
 				(sts, ctn, typ) => responseNormal(res, ctn, typ),
 				(sts, msg) => {
 					if (sts === 302) {
