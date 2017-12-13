@@ -5,6 +5,7 @@ const url = require('url');
 const queryString = require('querystring');
 
 const xsite = require('./server-xsite'); // TODO - for DEV only
+const dispatcher = require('./server-dsptch');
 
 const CONTENT_TYPE_KEY = 'Content-type';
 const SERVER_PORT = 8080;
@@ -135,16 +136,38 @@ http.createServer((req, res) => {
 			break;
 
 		default:
-			serveFile(reqUrl.pathname,
-				(sts, ctn, typ) => responseNormal(res, ctn, typ),
-				(sts, msg) => {
-					if (sts === 302) {
-						responseRedirect(res);
+			const REGEX = /[/]([0-9a-zA-Z_-]+)[/]([0-9a-zA-Z_-]+)([.][0-9a-zA-Z_-]+)?[/]?$/g;
+
+			// First try to interpret the URL
+			let mth = REGEX.exec(reqUrl.pathname);
+			if (mth == null) {
+				responseError(res, "Not found " + reqUrl.pathname, 404);
+			} else {
+				switch (mth[1]) {
+				case 'ws':
+					dispatcher.dispatch(req, res, mth[2],
+						(ctn, typ) => responseNormal(res, ctn, typ),
+						(sts, msg) => responseError(res, msg, sts)
+					);
+					break;
+				default:
+					if (mth[1] === mth[3].substring(1)) {
+						serveFile('/' + mth[2] + mth[3],
+							(sts, ctn, typ) => responseNormal(res, ctn, typ),
+							(sts, msg) => {
+								if (sts === 302) {
+									responseRedirect(res);
+								} else {
+									responseError(res, msg, sts);
+								}
+							}
+						);
 					} else {
-						responseError(res, msg, sts);
+						responseError(res, "Not found " + reqUrl.pathname, 404);
 					}
+					break;
 				}
-			);
+			}
 			break;
 		}
 	});
