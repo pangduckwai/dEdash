@@ -136,10 +136,24 @@ http.createServer((req, res) => {
 			break;
 
 		default:
-			const REGEX = /[/]([0-9a-zA-Z_-]+)[/]([0-9a-zA-Z_-]+)([.][0-9a-zA-Z_-]+)?[/]?$/g;
+			const REGEX_ALLOW = /[/](favicon.ico)|(icon_[0-9a-zA-Z_-]+[b|w][.]png)$/g;
+			let mth = REGEX_ALLOW.exec(reqUrl.pathname);
+			if (mth != null) {
+				serveFile(reqUrl.pathname,
+					(sts, ctn, typ) => responseNormal(res, ctn, typ),
+					(sts, msg) => {
+						if (sts === 302) {
+							responseRedirect(res);
+						} else {
+							responseError(res, msg, sts);
+						}
+					}
+				);
+				break;
+			}
 
-			// First try to interpret the URL
-			let mth = REGEX.exec(reqUrl.pathname);
+			const REGEX_PATH = /[/]([0-9a-zA-Z_-]+)[/]([0-9a-zA-Z_/-]+)([.][0-9a-zA-Z_-]+)?[/]?$/g;
+			mth = REGEX_PATH.exec(reqUrl.pathname); // Try to interpret the URL
 			if (mth == null) {
 				responseError(res, "Not found " + reqUrl.pathname, 404);
 			} else {
