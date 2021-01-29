@@ -1,14 +1,13 @@
 const http = require('http');
 const path = require('path');
-const url = require('url');
 const fs = require('fs');
+const url = require('url');
 const crypto = require('crypto');
 
-const SERVER_PORT = 8080;
-const HOME_PAGE = '/dEdash.html'
+const xsite = require('./server/server-xsite'); // TODO - for DEV only
 
-const xsite = require('./xsite-dev'); // TODO - for DEV only
 const CONTENT_TYPE_KEY = 'Content-type';
+const SERVER_PORT = 8080;
 const MIME_MAP = {
 	'.ico' : { mime: 'image/x-icon' },
 	'.html': { mime: 'text/html',        encoding: 'utf8' },
@@ -36,7 +35,7 @@ let responseError = (response, message, status) => {
 };
 
 let responseRedirect = (response, redirectTo) => {
-	response.writeHead(302, { 'Location': (redirectTo) ? redirectTo : HOME_PAGE });
+	response.writeHead(302, { 'Location': (redirectTo) ? redirectTo : '/index.html' });
 	response.end();
 };
 
@@ -69,7 +68,7 @@ let depth = 2;
 // ***
 
 http.createServer((req, res) => {
-	if (xsite.enable(req, res)) { return; } // TODO - for DEV only
+	if (xsite.enable(req, res)) { return; } // TODO - for DEV only, this allows cross site access
 
 	req.on('error', err => responseError(res, err, 500));
 	res.on('error', err => responseError(res, err, 500));
@@ -79,7 +78,7 @@ http.createServer((req, res) => {
 		buff += chunk;
 		if (buff.length > 1e6) req.connection.destroy(); // data larger than 1M
 	}).on('end', () => {
-		if (req.method == 'OPTIONS') {// TODO: Allow cross site for DEV
+		if (req.method == 'OPTIONS') {// TODO - for DEV only, this allows cross site access
 			responseNormal(res, '', 'text/plain');
 			return;
 		}
